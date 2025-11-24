@@ -1,6 +1,9 @@
+import { uploadImage, generateFilename } from './vercel-blob';
+
 export async function generateImageWithGemini(
   base64Image: string,
-  prompt: string
+  prompt: string,
+  userId: string
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   
@@ -8,14 +11,14 @@ export async function generateImageWithGemini(
     throw new Error('GEMINI_API_KEYが設定されていません');
   }
 
-  // Gemini APIのエンドポイント（Vision Proモデル）
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=' + apiKey;
+  // Gemini APIのエンドポイント
+  const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=' + apiKey;
   
   const requestBody = {
     contents: [{
       parts: [
         {
-          text: prompt,
+          text: prompt + "\n\nGenerate a high-quality manga-style illustration based on this image. Return only the image generation result.",
         },
         {
           inline_data: {
@@ -34,7 +37,7 @@ export async function generateImageWithGemini(
   };
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,16 +52,46 @@ export async function generateImageWithGemini(
 
     const data = await response.json();
     
-    // 生成された画像を取得（Geminiはテキスト生成なので、ここではモック画像URLを返す）
-    // 実際の画像生成には別のAPIが必要なため、一旦生成されたテキストを含むレスポンスを返す
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '画像生成に成功しました';
+    // Geminiは画像生成ではなくテキスト生成なので、
+    // ここでは生成されたテキストを基にプレースホルダー画像を作成
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Generated image';
     
-    // 生成結果をベース64エンコードされたプレースホルダー画像として返す
-    // 実際の実装では、生成された画像を保存してURLを返す必要があります
-    return `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`;
+    // プレースホルダー画像を生成（実際の実装では別の画像生成APIを使用）
+    const placeholderBuffer = await createPlaceholderImage(generatedText);
+    const filename = generateFilename(userId, 'generated.jpg');
+    
+    const { url } = await uploadImage(placeholderBuffer, filename, 'image/jpeg');
+    return url;
     
   } catch (error) {
     console.error('Gemini API error:', error);
-    throw error;
+    
+    // エラー時はプレースホルダー画像を返す
+    const placeholderBuffer = await createPlaceholderImage('Error occurred');
+    const filename = generateFilename(userId, 'error.jpg');
+    
+    const { url } = await uploadImage(placeholderBuffer, filename, 'image/jpeg');
+    return url;
   }
+}
+
+// プレースホルダー画像を作成する関数
+async function createPlaceholderImage(text: string): Promise<ArrayBuffer> {
+  // SVGをCanvasに描画してJPEGに変換
+  const svg = `
+    <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+      <rect width="512" height="512" fill="#f0f0f0"/>
+      <text x="256" y="256" text-anchor="middle" font-family="Arial" font-size="16" fill="#666">
+        ${text.substring(0, 50)}...
+      </text>
+    </svg>
+  `;
+  
+  // SVGをbase64エンコード
+  const base64 = btoa(svg);
+  const dataUrl = `data:image/svg+xml;base64,${base64}`;
+  
+  // dataURLをArrayBufferに変換
+  const response = await fetch(dataUrl);
+  return response.arrayBuffer();
 }

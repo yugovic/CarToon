@@ -1,11 +1,12 @@
 # MiniCartoon
 
-ミニカー写真をアップロードして、リアルから漫画調に仕上げるWebアプリ（Next.js + Gemini API）。Vercelデプロイ対応済み。
+ミニカー写真をアップロードして、リアルから漫画調に仕上げるWebアプリ（Next.js + Gemini API + Vercel Blob）。Vercelデプロイ対応済み。
 
 ## 構成
 - Next.js 15 / TypeScript / Tailwind CSS / shadcn UI
 - Gemini API による画像生成
-- ローカルモックストアから本番APIへ移行済み
+- Vercel Blob による画像保存
+- インメモリストア（本番ではVercel KV推奨）
 - レート制限・ギャラリー・Like機能完備
 
 ## セットアップ
@@ -21,12 +22,20 @@ http://localhost:3000 を開いて確認できます。管理画面は http://lo
 2. 以下を追加：
    ```
    GEMINI_API_KEY=your_gemini_api_key_here
+   BLOB_READ_WRITE_TOKEN=your_vercel_blob_token_here
    ```
+
+### Vercel Blobストレージ設定
+1. Vercelダッシュボード → Storage → Create Database
+2. 「Blob」を選択して作成
+3. 作成後に「.env.local」タブでトークンをコピー
+4. 上記の `BLOB_READ_WRITE_TOKEN` として設定
 
 ### ローカル開発
 `.env.local` ファイルを作成（Gitには含まれません）：
 ```bash
 GEMINI_API_KEY=your_gemini_api_key_here
+BLOB_READ_WRITE_TOKEN=your_vercel_blob_token_here
 ```
 
 ## 主要仕様
