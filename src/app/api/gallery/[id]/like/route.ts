@@ -5,10 +5,11 @@ import { toggleLike } from "@/lib/store";
 
 export async function POST(
   _req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const userId = ensureUserCookie();
-  const updated = toggleLike(params.id, userId);
+  const { id } = await params;
+  const userId = await ensureUserCookie();
+  const updated = toggleLike(id, userId);
   if (!updated) {
     return NextResponse.json({ error: "対象が見つかりませんでした。" }, { status: 404 });
   }

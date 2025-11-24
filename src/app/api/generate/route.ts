@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "画像が見つかりませんでした。" }, { status: 400 });
   }
 
-  const userId = ensureUserCookie();
+  const userId = await ensureUserCookie();
   const rate = checkRateLimit(userId);
   if (!rate.ok) {
     return NextResponse.json({ error: rate.reason }, { status: 429 });

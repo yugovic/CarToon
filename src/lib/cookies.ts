@@ -3,8 +3,8 @@ import { nanoid } from "nanoid";
 
 import { COOKIE_USER_ID } from "@/lib/constants";
 
-export function ensureUserCookie(): string {
-  const store = cookies();
+export async function ensureUserCookie(): Promise<string> {
+  const store = await cookies();
   const existing = store.get(COOKIE_USER_ID)?.value;
   if (existing) return existing;
 
