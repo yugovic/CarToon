@@ -4,12 +4,12 @@ import { nanoid } from "nanoid";
 import { COOKIE_USER_ID } from "@/lib/constants";
 
 export async function ensureUserCookie(): Promise<string> {
-  const store = await cookies();
-  const existing = store.get(COOKIE_USER_ID)?.value;
+  const cookieStore = await cookies();
+  const existing = cookieStore.get(COOKIE_USER_ID)?.value;
   if (existing) return existing;
 
   const newId = `toy-${nanoid(12)}`;
-  store.set(COOKIE_USER_ID, newId, {
+  cookieStore.set(COOKIE_USER_ID, newId, {
     path: "/",
     httpOnly: false,
     sameSite: "lax",
