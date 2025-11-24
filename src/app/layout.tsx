@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "MiniCartoon",
   description: "ミニカーをアップロードして、リアルから漫画調へワンタップ変換。",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
