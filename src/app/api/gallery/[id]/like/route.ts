@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { ensureUserCookie } from "@/lib/cookies";
 import { toggleLike } from "@/lib/storage";
 
 export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
   const userId = await ensureUserCookie();
   const updated = await toggleLike(id, userId);
   if (!updated) {
