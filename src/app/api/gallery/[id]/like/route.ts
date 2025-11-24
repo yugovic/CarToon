@@ -7,7 +7,7 @@ import { toggleLike } from "@/lib/storage";
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
-) {
+): Promise<NextResponse> {
   const { id } = await context.params;
   const userId = await ensureUserCookie();
   const updated = await toggleLike(id, userId);
